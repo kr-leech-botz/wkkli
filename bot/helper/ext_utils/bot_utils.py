@@ -196,6 +196,7 @@ def get_readable_message():
             buttons = ButtonMaker()
             buttons.sbutton("Previous", "status pre")
             buttons.sbutton("Next", "status nex")
+            buttons.sbutton("Refresh", "status refresh")
             buttons.sbutton("Statistics", str(FOUR))
             button = buttons.build_menu(2)
             return msg + bmsg, button
