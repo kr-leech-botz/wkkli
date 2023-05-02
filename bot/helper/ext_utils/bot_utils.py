@@ -189,6 +189,7 @@ def get_readable_message():
         bmsg += f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>UPTIME:</b> {get_readable_time(time() - botStartTime)}"
         bmsg += f"\n<b>DL:</b> {get_readable_file_size(dl_speed)}/s | <b>UL:</b> {get_readable_file_size(up_speed)}/s"
         buttons = ButtonMaker()
+        buttons.sbutton("Refresh", "status refresh")
         buttons.sbutton("Statistics", str(FOUR))
         sbutton = buttons.build_menu(1)
         if STATUS_LIMIT is not None and tasks > STATUS_LIMIT:
