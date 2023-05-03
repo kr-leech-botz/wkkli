@@ -139,7 +139,8 @@ def get_readable_message():
                 msg += f"\n├ <b>Progress : </b>{download.progress()}"
                 msg += f"\n├ <b>Done : </b>{get_readable_file_size(download.processed_bytes())} of {download.size()}"
                 msg += f"\n├ <b>Speed : </b>{download.speed()}"
-                msg += f"\n├ <b>ETA : </b>{download.eta()} | <b>Elapsed: </b>{get_readable_time(time() - download.message.date.timestamp())}"
+                msg += f"\n├ <b>ETA : </b>{download.eta()}"
+                msg += f"\n├ <b>Elapsed : </b>{get_readable_time(time() - download.message.date.timestamp())}"
                 msg += f"\n├ <b>Engine : </b>{download.eng()}"
                 if hasattr(download, 'seeders_num'):
                     try:
