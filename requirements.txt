@@ -27,5 +27,6 @@ SecretStorage
 tenacity
 tgCrypto
 xattr
+urllib3==1.26
 yt-dlp
 telegraph
