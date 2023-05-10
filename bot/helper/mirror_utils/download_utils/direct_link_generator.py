@@ -495,12 +495,13 @@ def gdtot(url):
 def filepress(link: str) -> str:
     cget = cloudscraper.create_scraper().request
     try:
+        raw = urlparse(link)
         json_data = {
-            'id': url.split('/')[-1],
+            'id': raw.path.split('/')[-1],
             'method': 'publicDownlaod',
             }
-        api = f'https://filepress.click/api/file/downlaod/'
-        res = cget('POST', api, headers={'Referer': f'https://filepress.click'}, json=json_data).json()
+        api = f'{raw.scheme}://filepress.click/api/file/downlaod/'
+        res = cget('POST', api, headers={'Referer': f'{raw.scheme}://filepress.click'}, json=json_data).json()
         if 'data' not in res:
             raise DirectDownloadLinkException(f'ERROR: {res["statusText"]}')
         return f'https://drive.google.com/open?id={res["data"]}'
