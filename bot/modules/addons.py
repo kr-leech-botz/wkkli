@@ -84,24 +84,41 @@ def caption_set(update, context):
 def userlog_set(update, context):
     user_id_ = update.message.from_user.id 
     u_men = update.message.from_user.first_name
-    if (BotCommands.UserLogCommand in update.message.text) and (len(update.message.text.split(' ')) == 1):
-        sendMessage(f'Send Your Backup Channel ID alone with command like \n\n{BotCommands.UserLogCommand} -100xxxxxxx', context.bot, update.message)
+        if (BotCommands.UserLogCommand in update.message.text) and (len(update.message.text.split(' ')) == 1):
+        help_msg = "<b>Send channel id after command:</b>"
+        help_msg += f"\n<code>/{BotCommands.UserLogCommand}" + " -100xxxxxxx" + "</code>\n"
+        help_msg += "\n<b>By Replying to Message (Including Channel ID):</b>"
+        help_msg += f"\n<code>/{BotCommands.UserLogCommand}" + " {message}" + "</code>"
+        sendMessage(help_msg, context.bot, update.message)
+        return
+    lm = sendMessage("Checking your Channel ID... 🛃", context.bot, update.message)          
+    pre_send = update.message.text.split(" ", maxsplit=1)
+    reply_to = update.message.reply_to_message
+    if len(pre_send) > 1:
+        dumpid_ = pre_send[1]
+    elif reply_to is not None:
+        dumpid_ = reply_to.text
     else:
-        lm = sendMessage("Please wait...🤖", context.bot, update.message)          
-        pre_send = update.message.text.split(" ", maxsplit=1)
-        reply_to = update.message.reply_to_message
-        if len(pre_send) > 1:
-            txt = pre_send[1]
-        elif reply_to is not None:
-            txt = reply_to.text
-        else:
-            txt = ""
-        dumpid_ = txt
-        LEECH_DICT[user_id_] = dumpid_
-        if DB_URI:
-            DbManger().user_dump(user_id_, dumpid_)
-            LOGGER.info(f"User : {user_id_} LeechLog ID Saved in DB")
-        editMessage(f"<b>{u_men} your Channel ID Saved...🛸</b>", lm)
+        dumpid_ = ""
+    if not dumpid_.startswith('-100'):
+        editMessage("<i><b>Your Channel ID Should Start with</b> -100xxxxxxxx, <u>Retry Again</u> !!</i>", lm)
+        return
+    dumpid_ = int(dumpid_.strip())
+    try:
+        editMessage("<i>Checking Your Channel Interaction ...</i> ♻️", lm)
+        bot.sendMessage(chat_id=dumpid_, text=f'''╭─《 WZML DUMP CHANNEL 》
+│
+├🆔 <b>Dump ID :</b> <code>{dumpid_}</code>
+│
+╰📂 <i>From Now On, The Bot will Send you Files in this Channel !!</i>''',  parse_mode='HTML')
+    except Exception as err:
+        editMessage(f"<i>Make Sure You have Added the Bot as Admin with Post Permission, Retry Again.</i>\n\nError : {err}", lm)
+        return
+    LEECH_DICT[user_id_] = str(dumpid_)
+    if DB_URI:
+        DbManger().user_dump(user_id_, str(dumpid_))
+        LOGGER.info(f"User : {user_id_} LeechLog ID Saved in DB")
+    editMessage(f"<b><a href='tg://user?id={user_id_}'>{u_men}</a>'s Dump Channel ID Saved Successfully...🛸</b>", lm)
 
 
 def remname_set(update, context):
