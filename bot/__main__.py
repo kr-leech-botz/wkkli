@@ -1,12 +1,16 @@
 from signal import signal, SIGINT
+import pytz
 from os import path as ospath, remove as osremove, execl as osexecl
 from subprocess import run as srun, check_output
-from psutil import disk_usage, cpu_percent, swap_memory, cpu_count, virtual_memory, net_io_counters, boot_time
+from psutil import (boot_time, cpu_count, cpu_percent, cpu_freq, disk_usage,
+                    net_io_counters, swap_memory, virtual_memory)
 from time import time
 from sys import executable
 from telegram.ext import CommandHandler
+from telegram import ParseMode
 
-from bot import bot, dispatcher, updater, botStartTime, IGNORE_PENDING_REQUESTS, LOGGER, Interval, INCOMPLETE_TASK_NOTIFIER, DB_URI, alive, app, main_loop, AUTHORIZED_CHATS, app_session, USER_SESSION_STRING, \
+
+from bot import bot, dispatcher, updater, botStartTime, IGNORE_PENDING_REQUESTS, SET_BOT_COMMANDS, TIMEZONE, IMAGE_URL, LOGGER, Interval, INCOMPLETE_TASK_NOTIFIER, DB_URI, alive, app, main_loop, AUTHORIZED_CHATS, app_session, USER_SESSION_STRING, \
     OWNER_ID, SUDO_USERS, START_BTN1_NAME, START_BTN1_URL, START_BTN2_NAME, START_BTN2_URL
 from .helper.ext_utils.fs_utils import start_cleanup, clean_all, exit_clean_up
 from .helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time
@@ -17,53 +21,76 @@ from .helper.telegram_helper.filters import CustomFilters
 from .helper.telegram_helper.button_build import ButtonMaker
 
 from .modules import authorize, list, cancel_mirror, mirror_status, mirror_leech, clone, ytdlp, shell, eval, delete, count, leech_settings, search, rss, bt_select, sleep, addons
+from datetime import datetime
+
+IMAGE_X = f"{IMAGE_URL}"
+now=datetime.now(pytz.timezone(f'{TIMEZONE}'))
+
+def progress_bar(percentage):
+    p_used = '⬢'
+    p_total = '⬡'
+    if isinstance(percentage, str):
+        return 'NaN'
+    try:
+        percentage=int(percentage)
+    except:
+        percentage = 0
+    return ''.join(
+        p_used if i <= percentage // 10 else p_total for i in range(1, 11)
+    )
 
 def stats(update, context):
     if ospath.exists('.git'):
-        last_commit = check_output(["git log -1 --date=short --pretty=format:'%cd <b>From</b> %cr'"], shell=True).decode()
+        last_commit = check_output(["git log -1 --date=short --pretty=format:'%cr \n<b>Version: </b> %cd'"], shell=True).decode()
     else:
         last_commit = 'No UPSTREAM_REPO'
-    currentTime = get_readable_time(time() - botStartTime)
+    sysTime = get_readable_time(time() - boot_time())
+    botTime = get_readable_time(time() - botStartTime)
     total, used, free, disk= disk_usage('/')
     total = get_readable_file_size(total)
     used = get_readable_file_size(used)
     free = get_readable_file_size(free)
     sent = get_readable_file_size(net_io_counters().bytes_sent)
     recv = get_readable_file_size(net_io_counters().bytes_recv)
-    cpuUsage = cpu_percent(interval=0.5)
+    cpuUsage = cpu_percent(interval=1)
+    v_core = cpu_count(logical=True) - cpu_count(logical=False)
     memory = virtual_memory()
+    swap = swap_memory()
     mem_p = memory.percent
-    mem_t = get_readable_file_size(memory.total)
-    mem_a = get_readable_file_size(memory.available)
-    mem_u = get_readable_file_size(memory.used)
-    stats = f'<b>Commit Date:</b> {last_commit}\n\n'\
-            f'<b>Bot Uptime:</b> {currentTime}\n\n'\
-            f'<b>Total Disk Space:</b> {total}\n'\
-            f'<b>Used:</b> {used} | <b>Free:</b> {free}\n\n'\
-            f'<b>Up:</b> {sent} | '\
-            f'<b>Down:</b> {recv}\n\n'\
-            f'<b>CPU:</b> {cpuUsage}% | '\
-            f'<b>RAM:</b> {mem_p}% | '\
-            f'<b>DISK:</b> {disk}%\n\n'\
-            f'<b>Total Memory:</b> {mem_t}\n'\
-            f'<b>Free:</b> {mem_a} | '\
-            f'<b>Used:</b> {mem_u}\n\n'
-    sendMessage(stats, context.bot, update.message)
+    stats = f'<b><i><u>Bot Statistics</u></i></b>\n\n'\
+            f'<code>CPU  :{progress_bar(cpuUsage)} {cpuUsage}%</code>\n' \
+            f'<code>RAM  :{progress_bar(mem_p)} {mem_p}%</code>\n' \
+            f'<code>SWAP :{progress_bar(swap.percent)} {swap.percent}%</code>\n' \
+            f'<code>DISK :{progress_bar(disk)} {disk}%</code>\n\n' \
+            f'<b>Updated:</b> {last_commit}\n' \
+            f'<b>SYS Uptime:</b> <code>{sysTime}</code>\n' \
+            f'<b>BOT Uptime:</b> <code>{botTime}</code>\n\n' \
+            f'<b>CPU Total Core(s):</b> <code>{cpu_count(logical=True)}</code>\n' \
+            f'<b>P-Core(s):</b> <code>{cpu_count(logical=False)}</code> | <b>V-Core(s):</b> <code>{v_core}</code>\n' \
+            f'<b>Frequency:</b> <code>{cpu_freq(percpu=False).current} Mhz</code>\n\n' \
+            f'<b>RAM In Use:</b> <code>{get_readable_file_size(memory.used)}</code> [{mem_p}%]\n' \
+            f'<b>Total:</b> <code>{get_readable_file_size(memory.total)}</code> | <b>Free:</b> <code>{get_readable_file_size(memory.available)}</code>\n\n' \
+            f'<b>SWAP In Use:</b> <code>{get_readable_file_size(swap.used)}</code> [{swap.percent}%]\n' \
+            f'<b>Allocated</b> <code>{get_readable_file_size(swap.total)}</code> | <b>Free:</b> <code>{get_readable_file_size(swap.free)}</code>\n\n' \
+            f'<b>Drive In Use:</b> <code>{used}</code> [{disk}%]\n' \
+            f'<b>Total:</b> <code>{total}</code> | <b>Free:</b> <code>{free}</code>\n' \
+            f'<b>T-UL:</b> <code>{sent}</code> | <b>T-DL:</b> <code>{recv}</code>\n'
+    update.effective_message.reply_photo(IMAGE_X, stats, parse_mode=ParseMode.HTML)
 
 
 def start(update, context):
     buttons = ButtonMaker()
-    buttons.buildbutton(f"{START_BTN1_NAME}", f"{START_BTN1_URL}")
-    buttons.buildbutton(f"{START_BTN2_NAME}", f"{START_BTN2_URL}")
-    reply_markup = buttons.build_menu(2)
+    buttons.buildbutton("Kristy X Leech", "https://t.me/KristyXLeech")
+    reply_markup = buttons.build_menu(1)
+    currentTime = get_readable_time(time() - botStartTime)
     if CustomFilters.authorized_user(update) or CustomFilters.authorized_chat(update):
         start_string = f'''
-This bot can mirror all your links to Google Drive or to telegram!
-Type /{BotCommands.HelpCommand} to get a list of available commands
+<b>XV BoT is Working.\n\nStill {currentTime}\n\n#BaashaXclouD</b>
 '''
         sendMarkup(start_string, context.bot, update.message, reply_markup)
     else:
-        sendMarkup('Not an Authorized user, deploy your own helios-mirror-leech bot', context.bot, update.message, reply_markup)
+        msg1 = f"<b>Bot Started In PM\nNow I send Your Future Updates To My Leech Dump & Here Too\n\nPowerded By <a href='https://telegram.dog/Abt_Kristy'>╰ Kʀɪꜱᴛʏ கிறிஸ்டி ╮</a> | <a href='https://telegram.dog/TeamLCU'>TeamLCU</a></b>"
+        update.effective_message.reply_photo(IMAGE_X, msg1, parse_mode=ParseMode.HTML, reply_markup=reply_markup)
 
 def restart(update, context):
     restart_message = sendMessage("Restarting...", context.bot, update.message)
@@ -163,7 +190,48 @@ def bot_help(update, context):
     button.buildbutton("Click Here", f"https://graph.org/{help}")
     reply_markup = button.build_menu(1)
     sendMarkup(help_string, context.bot, update.message, reply_markup)
+    
+if SET_BOT_COMMANDS:
+    botcmds = [
+        (f'{BotCommands.MirrorCommand}', 'Mirror'),
+        (f'{BotCommands.ZipMirrorCommand}','Mirror and upload as zip'),
+        (f'{BotCommands.UnzipMirrorCommand}','Mirror and extract files'),
+        (f'{BotCommands.QbMirrorCommand}','Mirror torrent using qBittorrent'),
+        (f'{BotCommands.QbZipMirrorCommand}','Mirror torrent and upload as zip using qb'),
+        (f'{BotCommands.QbUnzipMirrorCommand}','Mirror torrent and extract files using qb'),
+        (f'{BotCommands.WatchCommand}','Mirror yt-dlp supported link'),
+        (f'{BotCommands.ZipWatchCommand}','Mirror yt-dlp supported link as zip'),
+        (f'{BotCommands.CloneCommand}','Copy file/folder to Drive'),
+        (f'{BotCommands.LeechCommand}','Leech'),
+        (f'{BotCommands.ZipLeechCommand}','Leech and upload as zip'),
+        (f'{BotCommands.UnzipLeechCommand}','Leech and extract files'),
+        (f'{BotCommands.QbLeechCommand}','Leech torrent using qBittorrent'),
+        (f'{BotCommands.QbZipLeechCommand}','Leech torrent and upload as zip using qb'),
+        (f'{BotCommands.QbUnzipLeechCommand}','Leech torrent and extract using qb'),
+        (f'{BotCommands.LeechWatchCommand}','Leech yt-dlp supported link'),
+        (f'{BotCommands.LeechZipWatchCommand}','Leech yt-dlp supported link as zip'),
+        (f'{BotCommands.PreNameCommand}','Set Prename for Leech Files'),
+        (f'{BotCommands.SufNameCommand}','Set Suffix for Leech Files'),
+        (f'{BotCommands.CaptionCommand}','Set Caption for Leech Files'),
+        (f'{BotCommands.RemnameCommand}','Remove Specific words from filename'),
+        (f'{BotCommands.UserLogCommand}','Set Dump Channel for Leech Files'),
+        (f'{BotCommands.CountCommand}','Count file/folder of Drive'),
+        (f'{BotCommands.DeleteCommand}','Delete file/folder from Drive'),
+        (f'{BotCommands.CancelMirror}','Cancel a task'),
+        (f'{BotCommands.CancelAllCommand}','Cancel all downloading tasks'),
+        (f'{BotCommands.ListCommand}','Search in Drive'),
+        (f'{BotCommands.SearchCommand}','Search in Torrent'),
+        (f'{BotCommands.LeechSetCommand}','Leech settings'),
+        (f'{BotCommands.SetThumbCommand}','Set thumbnail'),
+        (f'{BotCommands.StatusCommand}','Get mirror status message'),
+        (f'{BotCommands.RestartCommand}','Restart the bot'),
+        (f'{BotCommands.LogCommand}','Get the bot Log'),
+        (f'{BotCommands.HelpCommand}','Get detailed help')
+    ]
+
 def main():
+    if SET_BOT_COMMANDS:
+        bot.set_my_commands(botcmds)
     start_cleanup()
     notifier_dict = False
     if INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
