@@ -29,6 +29,13 @@ basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
 
 LOGGER = getLogger(__name__)
 
+PRE_DICT = {}
+SUF_DICT = {}
+CAP_DICT = {}
+LEECH_DICT = {}
+REM_DICT = {}
+TIME_GAP_STORE = {}
+
 load_dotenv('config.env', override=True)
 
 def getConfig(name: str):
@@ -318,6 +325,19 @@ try:
     RSS_CHAT_ID = int(RSS_CHAT_ID)
 except:
     RSS_CHAT_ID = None
+try:
+    IMAGE_URL = getConfig('IMAGE_URL')
+    if len(IMAGE_URL) == 0:
+        IMAGE_URL = None
+except:
+    IMAGE_URL = 'https://graph.org/file/24315fa29c7523fafbe57.jpg'
+try:
+    TIMEZONE = getConfig("TIMEZONE")
+    if len(TIMEZONE) == 0:
+        TIMEZONE = None
+except:
+    TIMEZONE = "Asia/Kolkata"
+    
 try:
     RSS_DELAY = getConfig('RSS_DELAY')
     if len(RSS_DELAY) == 0:
