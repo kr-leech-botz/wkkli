@@ -155,6 +155,10 @@ class TgUploader:
                         new_path = ospath.join(dirpath, file_)
                         osrename(up_path, new_path)
                         up_path = new_path
+                    if len(LEECH_LOG) != 0:
+                        for leechchat in self.__leech_log:
+                            if ospath.getsize(up_path) > 2097152000: usingclient = app_session
+                            else: usingclient = self.__app
                     self.__sent_msg = client.send_video(chat_id=leechchat, video=up_path,
                                                                   caption=cap_mono,
                                                                   duration=duration,
@@ -171,6 +175,10 @@ class TgUploader:
                                 LOGGER.error(f"Failed To Send Video in PM:\n{err}")
                 elif is_audio:
                     duration , artist, title = get_media_info(up_path)
+                    if len(LEECH_LOG) != 0:
+                        for leechchat in self.__leech_log:
+                            if ospath.getsize(up_path) > 2097152000: usingclient = app_session
+                            else: usingclient = self.__app
                     self.__sent_msg = client.send_audio(chat_id=leechchat, audio=up_path,
                                                                   caption=cap_mono,
                                                                   duration=duration,
