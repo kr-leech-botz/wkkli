@@ -203,6 +203,8 @@ class TgUploader:
                         if self.__thumb is None and thumb is not None and ospath.lexists(thumb):
                             osremove(thumb)
                         return
+                if len(LEECH_LOG) != 0:
+                    for leechchat in self.__leech_log:
                 self.__sent_msg = client.send_document(chat_id=leechchat, document=up_path,
                                                                  thumb=thumb,
                                                                  caption=cap_mono,
