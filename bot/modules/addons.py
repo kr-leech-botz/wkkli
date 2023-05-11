@@ -84,7 +84,8 @@ def caption_set(update, context):
 def userlog_set(update, context):
     user_id_ = update.message.from_user.id 
     u_men = update.message.from_user.first_name
-        if (BotCommands.UserLogCommand in update.message.text) and (len(update.message.text.split(' ')) == 1):
+
+    if (BotCommands.UserLogCommand in update.message.text) and (len(update.message.text.split(' ')) == 1):
         help_msg = "<b>Send channel id after command:</b>"
         help_msg += f"\n<code>/{BotCommands.UserLogCommand}" + " -100xxxxxxx" + "</code>\n"
         help_msg += "\n<b>By Replying to Message (Including Channel ID):</b>"
@@ -119,6 +120,7 @@ def userlog_set(update, context):
         DbManger().user_dump(user_id_, str(dumpid_))
         LOGGER.info(f"User : {user_id_} LeechLog ID Saved in DB")
     editMessage(f"<b><a href='tg://user?id={user_id_}'>{u_men}</a>'s Dump Channel ID Saved Successfully...🛸</b>", lm)
+
 
 
 def remname_set(update, context):
