@@ -81,7 +81,7 @@ class DbManger:
                     if not ospath.exists('Thumbnails'):
                         makedirs('Thumbnails')
                     with open(path, 'wb+') as f:
-                        f.write(row[11])
+                        f.write(row[10])
                 if row[11] and row[0] not in LEECH_LOG:
                     LEECH_LOG.add(row[0])
 
