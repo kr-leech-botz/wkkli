@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup, NavigableString, Tag
 import time
 from telegram import Message
 from telegram.ext import CommandHandler
-from bot import LOGGER, dispatcher, PAID_USERS, OWNER_ID
+from bot import LOGGER, dispatcher, OWNER_ID
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.message_utils import sendMessage, editMessage, deleteMessage
