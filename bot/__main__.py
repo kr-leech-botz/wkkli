@@ -199,8 +199,6 @@ if SET_BOT_COMMANDS:
         (f'{BotCommands.QbMirrorCommand}','Mirror torrent using qBittorrent'),
         (f'{BotCommands.QbZipMirrorCommand}','Mirror torrent and upload as zip using qb'),
         (f'{BotCommands.QbUnzipMirrorCommand}','Mirror torrent and extract files using qb'),
-        (f'{BotCommands.WatchCommand}','Mirror yt-dlp supported link'),
-        (f'{BotCommands.ZipWatchCommand}','Mirror yt-dlp supported link as zip'),
         (f'{BotCommands.CloneCommand}','Copy file/folder to Drive'),
         (f'{BotCommands.LeechCommand}','Leech'),
         (f'{BotCommands.ZipLeechCommand}','Leech and upload as zip'),
