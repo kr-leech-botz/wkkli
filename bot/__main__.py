@@ -239,7 +239,7 @@ def main():
                     msg = f"<b>Every New End is a New Begining.\n\nXV BOT RESTARTED ⚡️\n\n📅DATE: {date}\n⌚TIME: {time}\n🗺️ TimeZone: {TIMEZONE}\n\nPlease Re-Add the Torrent's</b>"
 
                 for tag, links in data.items():
-                     msg += f"\n{tag}: "
+                     msg += f"\n\n{tag}: "
                      for index, link in enumerate(links, start=1):
                          msg += f" <a href='{link}'>{index}</a> |"
                          if len(msg.encode()) > 4000:
@@ -268,7 +268,7 @@ def main():
         bot.edit_message_text(msg, chat_id, msg_id)
         osremove(".restartmsg")
     elif not notifier_dict and AUTHORIZED_CHATS:
-        text = f"Bot Restarted\n\n📅DATE: {date} \n⌚TIME: {time} \n🌐TIMEZONE: {TIMEZONE}"
+        text = f"<b>Every New End is a New Begining.\n\nXV BOT RESTARTED ⚡️\n\n📅DATE: {date}\n⌚TIME: {time}\n🗺️ TimeZone: {TIMEZONE}\n\nPlease Re-Add the Torrent's</b>"
         for id_ in AUTHORIZED_CHATS:
             try:
                 bot.sendMessage(chat_id=id_, text=text, parse_mode=ParseMode.HTML)
