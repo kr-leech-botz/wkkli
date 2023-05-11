@@ -3,7 +3,7 @@ from threading import Thread
 from PIL import Image
 from telegram.ext import CommandHandler, CallbackQueryHandler
 
-from bot import AS_DOC_USERS, AS_MEDIA_USERS, dispatcher, AS_DOCUMENT, AUTO_DELETE_MESSAGE_DURATION, DB_URI
+from bot import AS_DOC_USERS, AS_MEDIA_USERS, dispatcher, AS_DOCUMENT, AUTO_DELETE_MESSAGE_DURATION, DB_URI, PRE_DICT, LEECH_DICT, CAP_DICT, REM_DICT, SUF_DICT
 from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, editMessage, auto_delete_message
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
@@ -16,6 +16,11 @@ def getleechinfo(from_user):
     name = from_user.full_name
     buttons = button_build.ButtonMaker()
     thumbpath = f"Thumbnails/{user_id}.jpg"
+    prefix = PRE_DICT.get(user_id, "Not Exists")
+    suffix = SUF_DICT.get(user_id, "Not Exists")
+    caption = CAP_DICT.get(user_id, "Not Exists")
+    dumpid = LEECH_DICT.get(user_id, "Not Exists")
+    remname = REM_DICT.get(user_id, "Not Exists")
     if (
         user_id in AS_DOC_USERS
         or user_id not in AS_MEDIA_USERS
@@ -30,17 +35,35 @@ def getleechinfo(from_user):
     if ospath.exists(thumbpath):
         thumbmsg = "Exists"
         buttons.sbutton("Delete Thumbnail", f"leechset {user_id} thumb")
+        buttons.sbutton("Show Thumbnail", f"leechset {user_id} showthumb")
     else:
         thumbmsg = "Not Exists"
+    if prefix != "Not Exists":
+        buttons.sbutton("Delete Prename", f"leechset {user_id} prename")
+    if suffix != "Not Exists":
+        buttons.sbutton("Delete Suffix", f"leechset {user_id} suffix")
+    if caption != "Not Exists": 
+        buttons.sbutton("Delete Caption", f"leechset {user_id} cap")
+    if dumpid != "Not Exists":
+        buttons.sbutton("Delete DumpID", f"leechset {user_id} dump")
+    if remname != "Not Exists": 
+        buttons.sbutton("Delete Remname", f"leechset {user_id} rem")
 
     if AUTO_DELETE_MESSAGE_DURATION == -1:
         buttons.sbutton("Close", f"leechset {user_id} close")
 
     button = buttons.build_menu(1)
 
-    text = f"<u>Leech Settings for <a href='tg://user?id={user_id}'>{name}</a></u>\n"\
-           f"Leech Type <b>{ltype}</b>\n"\
-           f"Custom Thumbnail <b>{thumbmsg}</b>"
+    text = f'''<u>Leech Settings for <a href='tg://user?id={user_id}'>{name}</a></u>
+    
+• Leech Type : <b>{ltype}</b>
+• Custom Thumbnail : <b>{thumbmsg}</b>
+• Prefix : <b>{prefix}</b>
+• Suffix : <b>{suffix}</b>
+• Caption : <b>{caption}</b>
+• Remname : <b>{remname}</b>
+• DumpID : <b>{dumpid}</b>
+'''
     return text, button
 
 def editLeechType(message, query):
@@ -76,6 +99,7 @@ def setLeechType(update, context):
             DbManger().user_media(user_id)
         query.answer(text="Your File Will Deliver As Media!", show_alert=True)
         editLeechType(message, query)
+
     elif data[2] == "thumb":
         path = f"Thumbnails/{user_id}.jpg"
         if ospath.lexists(path):
@@ -86,6 +110,43 @@ def setLeechType(update, context):
             editLeechType(message, query)
         else:
             query.answer(text="Old Settings", show_alert=True)
+    elif data[2] == "showthumb":
+        path = f"Thumbnails/{user_id}.jpg"
+        if ospath.lexists(path):
+            msg = f"Thumbnail for: {query.from_user.mention_html()} (<code>{str(user_id)}</code>)"
+            delo = sendPhoto(text=msg, bot=context.bot, message=message, photo=open(path, 'rb'))
+            Thread(args=(context.bot, update.message, delo)).start()
+        else: query.answer(text="Send new settings command.")
+    elif data[2] == "prename":
+        PRE_DICT.pop(user_id)
+        if DB_URI: 
+            DbManger().user_pre(user_id, '')
+        query.answer(text="Your Prename is Successfully Deleted!", show_alert=True)
+        editLeechType(message, query)
+    elif data[2] == "suffix":
+        SUF_DICT.pop(user_id)
+        if DB_URI: 
+            DbManger().user_suf(user_id, '')
+        query.answer(text="Your Suffix is Successfully Deleted!", show_alert=True)
+        editLeechType(message, query)
+    elif data[2] == "cap":
+        CAP_DICT.pop(user_id)
+        if DB_URI:
+            DbManger().user_cap(user_id, None)
+        query.answer(text="Your Caption is Successfully Deleted!", show_alert=True)
+        editLeechType(message, query)
+    elif data[2] == "rem":
+        REM_DICT.pop(user_id)
+        if DB_URI:
+            DbManger().user_rem(user_id, None)
+        query.answer(text="Your Remname is Successfully Deleted!", show_alert=True)
+        editLeechType(message, query)
+    elif data[2] == "dump":
+        LEECH_DICT.pop(user_id)
+        if DB_URI:
+            DbManger().user_dump(user_id, None)
+        query.answer(text="Your Dump ID is Successfully Deleted!", show_alert=True)
+        editLeechType(message, query)
     else:
         query.answer()
         try:
@@ -93,6 +154,7 @@ def setLeechType(update, context):
             query.message.reply_to_message.delete()
         except:
             pass
+
 
 def setThumb(update, context):
     user_id = update.message.from_user.id
