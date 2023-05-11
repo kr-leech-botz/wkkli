@@ -5,7 +5,7 @@ from pyrogram.errors import FloodWait, RPCError
 from PIL import Image
 from threading import RLock
 
-from bot import AS_DOCUMENT, AS_DOC_USERS, AS_MEDIA_USERS, CUSTOM_FILENAME, EXTENSION_FILTER, app, app_session, BOT_PM, LEECH_LOG
+from bot import AS_DOCUMENT, AS_DOC_USERS, AS_MEDIA_USERS, CUSTOM_FILENAME, EXTENSION_FILTER, app, app_session, BOT_PM, LEECH_LOG, PRE_DICT, LEECH_DICT, CAP_DICT, REM_DICT
 from bot.helper.ext_utils.fs_utils import take_ss, get_media_info, get_media_streams, clean_unwanted
 from bot.helper.ext_utils.bot_utils import get_readable_file_size
 
@@ -34,6 +34,7 @@ class TgUploader:
         self.__is_corrupted = False
         self.__sent_msg = app.get_messages(self.__listener.message.chat.id, self.__listener.uid)
         self.__size = size
+        self.__leech_log = LEECH_LOG.copy()  
         self.__user_settings()
         self.isPrivate = listener.message.chat.type in ['private', 'group']
         self.__app = app
@@ -79,20 +80,56 @@ class TgUploader:
             client = app_session
         else:
             client = app
-        if LEECH_LOG:
-            set = LEECH_LOG.copy()
-            setstr = str(set)[1:-1]
-            LEECH_DUMP = int(setstr)
-            leechchat = LEECH_DUMP
-        else: leechchat = self.__listener.message.chat.id
-        if CUSTOM_FILENAME is not None:
-            cap_mono = f"{CUSTOM_FILENAME} <b>{file_}</b>"
-            file_ = f"{CUSTOM_FILENAME} {file_}"
+        if file_.startswith('www'):
+            file_ = ' '.join(file_.split()[1:])
+        prefix = PRE_DICT.get(self.__listener.message.from_user.id, "")
+        PRENAME_X = prefix
+        PRENAME_X = PRENAME_X.replace('/s', ' ')
+        removename = REM_DICT.get(self.__listener.message.from_user.id, "")
+        REMOVE_X = removename
+        if REMOVE_X is not None:
+            if not REMOVE_X.startswith('|'):
+                REMOVE_X = f"|{REMOVE_X}"
+            slit = REMOVE_X.split("|")
+            __newFileName = ospath.splitext(file_)[0]
+            for rep in range(1, len(slit)):
+                args = slit[rep].split(":")
+                if len(args) == 3:
+                    __newFileName = __newFileName.replace(args[0], args[1], int(args[2]))
+                elif len(args) == 2:
+                    __newFileName = __newFileName.replace(args[0], args[1])
+                elif len(args) == 1:
+                    __newFileName = __newFileName.replace(args[0], '')
+            file_ = __newFileName + ospath.splitext(file_)[1]
+            LOGGER.info("Remname : "+file_)
+        else:
+            file_ = file_
+        if PRENAME_X is not None:
+            file_ = file_.strip('-').strip('_')
+            new_cap = f"{PRENAME_X}{file_}"
+            cap_mono = f"<b>{new_cap.rsplit('.', 1)[0]}</b>"
+            file_ = f"{PRENAME_X}{file_}"
             new_path = ospath.join(dirpath, file_)
             osrename(up_path, new_path)
             up_path = new_path
         else:
-            cap_mono = f"<b>{file_}</b>"
+            cap_mono = f"{file_}"
+        caption = CAP_DICT.get(self.__listener.message.from_user.id, "")
+        CAPTION_X = caption
+        if CAPTION_X is not None:
+            CX = f"<b>{CAPTION_X}</b>"
+        else:
+            CX = ''
+        CAP_X = cap_mono + CX
+        CAP_X = CAP_X.replace("HEVC", "#HEVC")
+        dumpid = LEECH_DICT.get(self.__listener.message.from_user.id, "")
+        if len(dumpid) != 0:
+            if fsize > 2097152000:
+                LEECH_X = int(dumpid)
+            else:
+                LEECH_X = int(dumpid)
+        else:
+            LEECH_X = LEECH_LOG
         notMedia = False
         thumb = self.__thumb
         self.__is_corrupted = False
