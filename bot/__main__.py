@@ -211,12 +211,8 @@ if SET_BOT_COMMANDS:
         (f'{BotCommands.CaptionCommand}','Set Caption for Leech Files'),
         (f'{BotCommands.RemnameCommand}','Remove Specific words from filename'),
         (f'{BotCommands.UserLogCommand}','Set Dump Channel for Leech Files'),
-        (f'{BotCommands.CountCommand}','Count file/folder of Drive'),
-        (f'{BotCommands.DeleteCommand}','Delete file/folder from Drive'),
         (f'{BotCommands.CancelMirror}','Cancel a task'),
-        (f'{BotCommands.CancelAllCommand}','Cancel all downloading tasks'),
         (f'{BotCommands.ListCommand}','Search in Drive'),
-        (f'{BotCommands.SearchCommand}','Search in Torrent'),
         (f'{BotCommands.LeechSetCommand}','Leech settings'),
         (f'{BotCommands.SetThumbCommand}','Set thumbnail'),
         (f'{BotCommands.StatusCommand}','Get mirror status message'),
@@ -229,6 +225,8 @@ def main():
     if SET_BOT_COMMANDS:
         bot.set_my_commands(botcmds)
     start_cleanup()
+    date = now.strftime('%d/%m/%y')
+    time = now.strftime('%I:%M:%S %p')
     notifier_dict = False
     if INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
         if notifier_dict := DbManger().get_incomplete_tasks():
@@ -236,15 +234,16 @@ def main():
                 if ospath.isfile(".restartmsg"):
                     with open(".restartmsg") as f:
                         chat_id, msg_id = map(int, f)
-                    msg = 'Restarted Successfully!'
+                    msg = f"<b>Every New End is a New Begining.\n\nXV BOT RESTARTED ⚡️\n\n📅DATE: {date}\n⌚TIME: {time}\n🗺️ TimeZone: {TIMEZONE}\n\nPlease Re-Add the Torrent's</b>"
                 else:
-                    msg = 'Bot Restarted!'
+                    msg = f"<b>Every New End is a New Begining.\n\nXV BOT RESTARTED ⚡️\n\n📅DATE: {date}\n⌚TIME: {time}\n🗺️ TimeZone: {TIMEZONE}\n\nPlease Re-Add the Torrent's</b>"
+
                 for tag, links in data.items():
-                     msg += f"\n\n{tag}: "
+                     msg += f"\n{tag}: "
                      for index, link in enumerate(links, start=1):
                          msg += f" <a href='{link}'>{index}</a> |"
                          if len(msg.encode()) > 4000:
-                             if 'Restarted Successfully!' in msg and cid == chat_id:
+                             if '😎Restarted successfully❗' in msg and cid == chat_id:
                                  bot.editMessageText(msg, chat_id, msg_id, parse_mode='HTML', disable_web_page_preview=True)
                                  osremove(".restartmsg")
                              else:
@@ -253,7 +252,7 @@ def main():
                                  except Exception as e:
                                      LOGGER.error(e)
                              msg = ''
-                if 'Restarted Successfully!' in msg and cid == chat_id:
+                if '😎Restarted successfully❗' in msg and cid == chat_id:
                      bot.editMessageText(msg, chat_id, msg_id, parse_mode='HTML', disable_web_page_preview=True)
                      osremove(".restartmsg")
                 else:
@@ -265,12 +264,14 @@ def main():
     if ospath.isfile(".restartmsg"):
         with open(".restartmsg") as f:
             chat_id, msg_id = map(int, f)
-        bot.edit_message_text("Restarted Successfully!", chat_id, msg_id)
+        msg = f"Restarted successfully❗\n\n📅DATE: {date}\n⌚TIME: {time}\n🌐TIMEZONE: {TIMEZONE}\n"
+        bot.edit_message_text(msg, chat_id, msg_id)
         osremove(".restartmsg")
     elif not notifier_dict and AUTHORIZED_CHATS:
+        text = f"Bot Restarted\n\n📅DATE: {date} \n⌚TIME: {time} \n🌐TIMEZONE: {TIMEZONE}"
         for id_ in AUTHORIZED_CHATS:
             try:
-                bot.sendMessage(id_, "Bot Restarted!", 'HTML')
+                bot.sendMessage(chat_id=id_, text=text, parse_mode=ParseMode.HTML)
             except Exception as e:
                 LOGGER.error(e)
 
