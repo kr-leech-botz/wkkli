@@ -204,7 +204,9 @@ class TgUploader:
                             osremove(thumb)
                         return
                 if len(LEECH_LOG) != 0:
-                    for leechchat in self.__leech_log:
+                        for leechchat in self.__leech_log:
+                            if ospath.getsize(up_path) > 2097152000: usingclient = app_session
+                            else: usingclient = self.__app
                 self.__sent_msg = client.send_document(chat_id=leechchat, document=up_path,
                                                                  thumb=thumb,
                                                                  caption=cap_mono,
