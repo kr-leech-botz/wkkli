@@ -206,8 +206,6 @@ if SET_BOT_COMMANDS:
         (f'{BotCommands.QbLeechCommand}','Leech torrent using qBittorrent'),
         (f'{BotCommands.QbZipLeechCommand}','Leech torrent and upload as zip using qb'),
         (f'{BotCommands.QbUnzipLeechCommand}','Leech torrent and extract using qb'),
-        (f'{BotCommands.LeechWatchCommand}','Leech yt-dlp supported link'),
-        (f'{BotCommands.LeechZipWatchCommand}','Leech yt-dlp supported link as zip'),
         (f'{BotCommands.PreNameCommand}','Set Prename for Leech Files'),
         (f'{BotCommands.SufNameCommand}','Set Suffix for Leech Files'),
         (f'{BotCommands.CaptionCommand}','Set Caption for Leech Files'),
