@@ -280,6 +280,11 @@ try:
 except:
     STATUS_LIMIT = None
 try:
+    SET_BOT_COMMANDS = getConfig('SET_BOT_COMMANDS')
+    SET_BOT_COMMANDS = SET_BOT_COMMANDS.lower() == 'true'
+except:
+    SET_BOT_COMMANDS = False 
+try:
     UPTOBOX_TOKEN = getConfig('UPTOBOX_TOKEN')
     if len(UPTOBOX_TOKEN) == 0:
         raise KeyError
