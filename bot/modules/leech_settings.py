@@ -52,7 +52,7 @@ def getleechinfo(from_user):
     if AUTO_DELETE_MESSAGE_DURATION == -1:
         buttons.sbutton("Close", f"leechset {user_id} close")
 
-    button = buttons.build_menu(2
+    button = buttons.build_menu(2)
 
     text = f'''<u>Leech Settings for <a href='tg://user?id={user_id}'>{name}</a></u>
     
